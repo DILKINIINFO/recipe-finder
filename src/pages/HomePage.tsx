@@ -1,113 +1,119 @@
 // src/pages/HomePage.tsx
 
 import React, { useState, useEffect } from 'react';
-import SearchBar from '../components/SearchBar';
-import RecipeCard from '../components/RecipeCard';
+import { useNavigate } from 'react-router-dom';
 import RecipeSlideshow from '../components/RecipeSlideshow';
+import CategoryCard from '../components/CategoryCard';
+import { searchRecipesByName, listAllCategories } from '../api/mealdb';
 import { Meal } from '../types/recipe';
 
-const API_SEARCH_URL = 'https://www.themealdb.com/api/json/v1/1/search.php?s=';
+// Define the Category type based on the API response
+interface Category {
+  idCategory: string;
+  strCategory: string;
+  strCategoryThumb: string;
+  strCategoryDescription: string;
+}
 
 const HomePage = () => {
-  // --- State for the Slideshow ---
   const [slideshowRecipes, setSlideshowRecipes] = useState<Meal[]>([]);
-  const [slideshowLoading, setSlideshowLoading] = useState(true);
-  
-  // --- State for the Search Results ---
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [recipes, setRecipes] = useState<Meal[]>([]);
-  // FIX: Initialize loading to false since we aren't fetching on load anymore.
-  const [loading, setLoading] = useState(false); 
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // useEffect for fetching slideshow data on component mount
   useEffect(() => {
-    const fetchSlideshowData = async () => {
-      const featuredRecipeNames = ['Arrabiata', 'Corba', 'Tiramisu', 'Kumpir', 'Lasagne', 'Pancakes'];
-      
+    const loadHomePageData = async () => {
       try {
-        const promises = featuredRecipeNames.map(name =>
-          fetch(`${API_SEARCH_URL}${name}`).then(res => res.json())
-        );
-        const results = await Promise.all(promises);
-        const meals = results.flatMap(result => result.meals || []);
+        setLoading(true);
+        // Fetch both slideshow recipes and categories at the same time
+        const featuredRecipeNames = ['Arrabiata', 'Corba', 'Tiramisu', 'Kumpir', 'Lasagne'];
+        const recipePromises = featuredRecipeNames.map(name => searchRecipesByName(name));
+        const categoryPromise = listAllCategories();
+
+        const [categoryData, ...recipeResults] = await Promise.all([categoryPromise, ...recipePromises]);
+        
+        const meals = recipeResults.flatMap(result => result.meals || []);
+        
         setSlideshowRecipes(meals);
-      } catch (err) {
-        console.error("Failed to fetch slideshow recipes", err);
-        setSlideshowRecipes([]);
+        setCategories(categoryData.categories || []);
+
+      } catch (error) {
+        console.error("Failed to load home page data:", error);
       } finally {
-        setSlideshowLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchSlideshowData();
+    loadHomePageData();
   }, []);
-
-  // This function is now ONLY called when the user performs a search.
-  const fetchRecipes = async (term: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_SEARCH_URL}${term}`);
-      const data = await response.json();
-      setRecipes(data.meals || []);
-    } catch (err) {
-      setError('Failed to fetch recipes. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = () => {
+  
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (searchTerm.trim()) {
-      fetchRecipes(searchTerm);
+      // Instead of displaying results here, we could navigate to a search results page
+      // For now, let's keep it simple and just log it, or you could implement a search results page
+      console.log("Searching for:", searchTerm);
+      alert(`Search feature can be implemented on a dedicated page. You searched for: ${searchTerm}`);
     }
   };
 
   return (
-    <>
-      {/* --- Slideshow Section --- */}
-      {slideshowLoading ? (
-        <div className="text-center p-10">
-          <p className="text-xl">Loading featured recipes...</p>
-        </div>
-      ) : slideshowRecipes.length > 0 ? (
-        <RecipeSlideshow recipes={slideshowRecipes} />
-      ) : (
-        <div className="text-center p-10">
-          <p className="text-xl text-red-500">Could not load featured recipes.</p>
-        </div>
-      )}
-
-      {/* --- Search Section --- */}
-      <div className="text-center border-t-2 border-stone-200 pt-8 mt-8">
-        <h2 className="text-3xl font-bold text-slate-700 mb-4">Search For A Recipe</h2>
-        <SearchBar 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          handleSearch={handleSearch} 
-        />
-      </div>
-
-      {/* --- Search Results Grid --- */}
-      <div className="mt-12">
-        {loading && <p className="text-center text-xl">Searching...</p>}
-        {error && <p className="text-center text-xl text-red-500">{error}</p>}
+    <div>
+      {/* --- HERO SECTION --- */}
+      <div className="relative bg-slate-800 text-white pt-10 pb-20 mb-16">
+        {/* Decorative background shapes (optional but stylish) */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob"></div>
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-slate-500/10 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
         
-        {/* FIX: This condition now shows a prompt on the initial page load. */}
-        {!loading && !error && recipes.length === 0 && (
-          <p className="text-center text-xl text-slate-500">
-            Start by searching for a recipe or an ingredient above!
-          </p>
-        )}
+        <div className="container mx-auto px-4 relative z-10">
+          {loading ? (
+            <div className="h-96 flex justify-center items-center"><p>Loading...</p></div>
+          ) : (
+            <RecipeSlideshow recipes={slideshowRecipes} />
+          )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe.idMeal} recipe={recipe} />
-          ))}
+          {/* Simple Search Bar integrated into Hero */}
+          <div className="mt-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Find Your Next Favorite Meal</h2>
+            <p className="max-w-xl mx-auto mb-6 text-slate-300">
+              Enter an ingredient or dish name to get started.
+            </p>
+            <form onSubmit={handleSearchSubmit} className="flex justify-center">
+              <input 
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="e.g. Salmon, Pizza, Curry..."
+                className="w-full max-w-lg p-3 rounded-l-lg border-0 text-slate-800 focus:outline-none focus:ring-4 focus:ring-amber-400"
+              />
+              <button 
+                type="submit"
+                className="bg-amber-500 text-white p-3 rounded-r-lg hover:bg-amber-600 font-semibold transition-colors"
+              >
+                Search
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </>
+
+      {/* --- CATEGORY BROWSE SECTION --- */}
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center text-slate-700 mb-2">Browse by Category</h2>
+        <p className="text-center text-slate-500 mb-8">Not sure what to cook? Get some inspiration.</p>
+        
+        {loading ? (
+          <p className="text-center">Loading categories...</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {categories.map(cat => (
+              <CategoryCard key={cat.idCategory} category={cat} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
