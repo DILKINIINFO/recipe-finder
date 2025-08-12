@@ -27,7 +27,7 @@ const CategoryPage = () => {
   }, [name]);
 
   return (
-    // --- NEW: Full-page wrapper with background color and padding ---
+    // ---  Full-page wrapper with background color and padding ---
     <div className="bg-stone-100 py-12">
       <div className="container mx-auto px-4">
         <Link to="/" className="text-amber-600 hover:text-amber-800 font-semibold mb-6 inline-block">

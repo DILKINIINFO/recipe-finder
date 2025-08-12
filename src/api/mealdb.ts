@@ -2,6 +2,13 @@
 
 const BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 
+// NEW: Function to search recipes by the first letter
+export const searchRecipesByFirstLetter = async (letter: string) => {
+  const response = await fetch(`${BASE_URL}/search.php?f=${letter}`);
+  if (!response.ok) throw new Error('Network response was not ok.');
+  return response.json();
+};
+
 // Function to search recipes by name
 export const searchRecipesByName = async (name: string) => {
   const response = await fetch(`${BASE_URL}/search.php?s=${name}`);

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RecipeSlideshow from '../components/RecipeSlideshow';
 import CategoryCard from '../components/CategoryCard';
-import { searchRecipesByName, listAllCategories } from '../api/mealdb';
+import { searchRecipesByFirstLetter, listAllCategories } from '../api/mealdb';
 import { Meal } from '../types/recipe';
 
 // Define the Category type based on the API response
@@ -26,16 +26,19 @@ const HomePage = () => {
     const loadHomePageData = async () => {
       try {
         setLoading(true);
-        // Fetch both slideshow recipes and categories at the same time
-        const featuredRecipeNames = ['Arrabiata', 'Corba', 'Tiramisu', 'Kumpir', 'Lasagne'];
-        const recipePromises = featuredRecipeNames.map(name => searchRecipesByName(name));
+        // Fetch all recipes starting with 'c' for the slideshow
+        const slideshowPromise = searchRecipesByFirstLetter('c');
         const categoryPromise = listAllCategories();
 
-        const [categoryData, ...recipeResults] = await Promise.all([categoryPromise, ...recipePromises]);
+        const [slideshowData, categoryData] = await Promise.all([
+          slideshowPromise,
+          categoryPromise,
+        ]);
         
-        const meals = recipeResults.flatMap(result => result.meals || []);
+        // Limit the number of slides to 15 for better performance
+        const limitedMeals = (slideshowData.meals || []).slice(0, 15);
         
-        setSlideshowRecipes(meals);
+        setSlideshowRecipes(limitedMeals);
         setCategories(categoryData.categories || []);
 
       } catch (error) {
@@ -51,7 +54,6 @@ const HomePage = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      // Navigate to the search results page with the query
       navigate(`/search/${searchTerm}`);
     }
   };
@@ -66,7 +68,7 @@ const HomePage = () => {
         
         <div className="container mx-auto px-4 relative z-10">
           {loading ? (
-            <div className="h-96 flex justify-center items-center"><p>Loading...</p></div>
+            <div className="h-96 flex justify-center items-center"><p>Loading featured recipes...</p></div>
           ) : (
             <RecipeSlideshow recipes={slideshowRecipes} />
           )}
@@ -81,7 +83,6 @@ const HomePage = () => {
               <input 
                 type="text"
                 value={searchTerm}
-                // <-- THE FIX IS HERE: Corrected typo from "e.targe" to "e.target"
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="e.g. Salmon, Pizza, Curry..."
                 className="w-full max-w-lg p-3 rounded-l-lg border-0 text-slate-800 focus:outline-none focus:ring-4 focus:ring-amber-400"
