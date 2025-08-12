@@ -1,24 +1,10 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+// src/App.tsx
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="bg-slate-100 min-h-screen">
+      <h1 className="text-4xl text-center text-slate-800 font-bold p-4">
+        Recipe Finder
+      </h1>
     </div>
   );
 }
