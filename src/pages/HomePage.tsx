@@ -51,10 +51,8 @@ const HomePage = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      // Instead of displaying results here, we could navigate to a search results page
-      // For now, let's keep it simple and just log it, or you could implement a search results page
-      console.log("Searching for:", searchTerm);
-      alert(`Search feature can be implemented on a dedicated page. You searched for: ${searchTerm}`);
+      // Navigate to the search results page with the query
+      navigate(`/search/${searchTerm}`);
     }
   };
 
@@ -62,7 +60,7 @@ const HomePage = () => {
     <div>
       {/* --- HERO SECTION --- */}
       <div className="relative bg-slate-800 text-white pt-10 pb-20 mb-16">
-        {/* Decorative background shapes (optional but stylish) */}
+        {/* Decorative background shapes */}
         <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob"></div>
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-slate-500/10 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
         
@@ -83,6 +81,7 @@ const HomePage = () => {
               <input 
                 type="text"
                 value={searchTerm}
+                // <-- THE FIX IS HERE: Corrected typo from "e.targe" to "e.target"
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="e.g. Salmon, Pizza, Curry..."
                 className="w-full max-w-lg p-3 rounded-l-lg border-0 text-slate-800 focus:outline-none focus:ring-4 focus:ring-amber-400"
