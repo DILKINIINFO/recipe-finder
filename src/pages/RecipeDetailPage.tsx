@@ -122,10 +122,8 @@ const RecipeDetailPage = () => {
                 onLoad={() => setImageLoaded(true)}
               />
               
-              {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               
-              {/* Recipe title overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
                 <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl">
                   {recipe.strMeal}
@@ -152,7 +150,10 @@ const RecipeDetailPage = () => {
           <div className="p-6 md:p-8">
             {/* Action buttons */}
             <div className="flex flex-wrap justify-center gap-4 mb-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
-              {recipe.strYoutube && (
+              
+              {/* --- IMPROVED LOGIC FOR YOUTUBE BUTTON --- */}
+              {/* This checks that strYoutube exists AND is not an empty string */}
+              {recipe.strYoutube && recipe.strYoutube.trim() !== '' && (
                 <a
                   href={recipe.strYoutube}
                   target="_blank"
@@ -185,7 +186,7 @@ const RecipeDetailPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Ingredients Section */}
               <div className="lg:col-span-1">
-                <div className="bg-gradient-to-br from-white/80 to-amber-50/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/50 sticky top-8">
+                <div className="bg-gradient-to-br from-white/80 to-amber-50/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-200/50 sticky top-28">
                   <div className="flex items-center mb-6">
                     <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mr-4">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +212,6 @@ const RecipeDetailPage = () => {
                     ))}
                   </ul>
                   
-                  {/* Nutrition info placeholder */}
                   <div className="mt-6 pt-6 border-t border-amber-200">
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div className="bg-amber-50 rounded-lg p-3">
@@ -241,12 +241,10 @@ const RecipeDetailPage = () => {
                   
                   <div className="prose prose-lg prose-slate max-w-none">
                     <div className="text-gray-800 leading-relaxed whitespace-pre-wrap text-lg">
-                      {recipe.strInstructions.split('\n').map((paragraph, index) => (
-                        paragraph.trim() && (
-                          <p key={index} className="mb-4 p-4 bg-gray-50/50 rounded-xl border-l-4 border-blue-400 hover:bg-gray-50 transition-colors duration-200">
-                            {paragraph.trim()}
-                          </p>
-                        )
+                      {recipe.strInstructions.split('\n').filter(p => p.trim() !== '').map((paragraph, index) => (
+                        <p key={index} className="mb-4 p-4 bg-gray-50/50 rounded-xl border-l-4 border-blue-400 hover:bg-gray-50 transition-colors duration-200">
+                          {paragraph.trim()}
+                        </p>
                       ))}
                     </div>
                   </div>
