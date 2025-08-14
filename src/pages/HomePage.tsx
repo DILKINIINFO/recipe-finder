@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RecipeSlideshow from '../components/RecipeSlideshow';
 import CategoryCard from '../components/CategoryCard';
-import { searchRecipesByFirstLetter, listAllCategories } from '../api/mealdb';
+import { filterByCategory, listAllCategories } from '../api/mealdb';
 import { Meal } from '../types/recipe';
 
 // Define the Category type based on the API response
@@ -26,23 +26,77 @@ const HomePage = () => {
     const loadHomePageData = async () => {
       try {
         setLoading(true);
-        // Fetch all recipes starting with 'c' for the slideshow
-        const slideshowPromise = searchRecipesByFirstLetter('c');
-        const categoryPromise = listAllCategories();
-
-        const [slideshowData, categoryData] = await Promise.all([
-          slideshowPromise,
-          categoryPromise,
-        ]);
         
-        // Limit the number of slides to 15 for better performance
-        const limitedMeals = (slideshowData.meals || []).slice(0, 15);
+        // get all categories
+        const categoryData = await listAllCategories();
+        const allCategories = categoryData.categories || [];
+        setCategories(allCategories);
         
-        setSlideshowRecipes(limitedMeals);
-        setCategories(categoryData.categories || []);
+        console.log('Available categories:', allCategories.map((c: { strCategory: any; }) => c.strCategory));
+        
+        // Get one recipe from each category for the slideshow
+        const categoryRecipePromises = allCategories.map(async (category: { strCategory: string; }) => {
+          try {
+            const categoryRecipes = await filterByCategory(category.strCategory);
+            if (categoryRecipes.meals && categoryRecipes.meals.length > 0) {
+              // Get the first recipe from this category and fetch its full details
+              const firstRecipe = categoryRecipes.meals[0];
+              
+              
+              // The filter API returns: idMeal, strMeal, strMealThumb
+              
+              const enhancedRecipe: Meal = {
+                idMeal: firstRecipe.idMeal,
+                strMeal: firstRecipe.strMeal,
+                strMealThumb: firstRecipe.strMealThumb,
+                strCategory: category.strCategory,
+                strArea: 'International', // Default since filter API doesn't provide this
+                strInstructions: '', // Will be loaded when user clicks
+                strDrinkAlternate: null,
+                strTags: '',
+                strYoutube: ''
+              };
+              
+              console.log(`Found recipe for ${category.strCategory}:`, enhancedRecipe.strMeal);
+              return enhancedRecipe;
+            }
+            return null;
+          } catch (error) {
+            console.error(`Failed to load recipes for category ${category.strCategory}:`, error);
+            return null;
+          }
+        });
+        
+        // Wait for all category recipes to load
+        const categoryRecipes = await Promise.all(categoryRecipePromises);
+        
+        // Filter out null results and shuffle the array
+        const validRecipes = categoryRecipes.filter(recipe => recipe !== null) as Meal[];
+        const shuffledRecipes = validRecipes.sort(() => Math.random() - 0.5);
+        
+        // Limit to 15 recipes for better performance
+        const finalRecipes = shuffledRecipes.slice(0, 15);
+        
+        console.log('Final slideshow recipes:', finalRecipes.map(r => ({ 
+          id: r.idMeal, 
+          name: r.strMeal, 
+          category: r.strCategory 
+        })));
+        
+        setSlideshowRecipes(finalRecipes);
 
       } catch (error) {
         console.error("Failed to load home page data:", error);
+        // Fallback: try to load some default recipes if category loading fails
+        try {
+          const { searchRecipesByFirstLetter } = await import('../api/mealdb');
+          const fallbackData = await searchRecipesByFirstLetter('c');
+          if (fallbackData.meals) {
+            setSlideshowRecipes(fallbackData.meals.slice(0, 10));
+          }
+        } catch (fallbackError) {
+          console.error("Fallback recipe loading also failed:", fallbackError);
+        }
       } finally {
         setLoading(false);
       }
@@ -72,11 +126,24 @@ const HomePage = () => {
             <div className="h-96 flex justify-center items-center">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-400 mx-auto mb-4"></div>
-                <p className="text-xl font-medium">Loading featured recipes...</p>
+                <p className="text-xl font-medium">Loading featured recipes from all categories...</p>
+                <p className="text-amber-200 text-sm mt-2">Discovering delicious dishes from around the world</p>
               </div>
             </div>
-          ) : (
+          ) : slideshowRecipes.length > 0 ? (
             <RecipeSlideshow recipes={slideshowRecipes} />
+          ) : (
+            <div className="h-96 flex justify-center items-center">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-xl font-medium text-red-200">Failed to load featured recipes</p>
+                <p className="text-amber-200 text-sm mt-2">Please try refreshing the page</p>
+              </div>
+            </div>
           )}
 
           {/* Enhanced Search Bar integrated into Hero */}
@@ -142,9 +209,10 @@ const HomePage = () => {
       {/* --- ENHANCED CATEGORY BROWSE SECTION --- */}
       <div className="container mx-auto px-4 pb-16">
         <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold text-transparent bg-gradient-to-r from-slate-700 to-slate-800 bg-clip-text mb-4">
-            Browse by Category
+          <h2 className="text-5xl font-bold text-transparent bg-gradient-to-r from-slate-700 to-slate-800 bg-clip-text mb-4 leading-tight">
+             Browse by Category
           </h2>
+
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Not sure what to cook? Get some inspiration by exploring different cuisines and meal types.
           </p>

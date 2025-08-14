@@ -6,10 +6,12 @@ import HomePage from './pages/HomePage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import CategoryPage from '../src/components/CategoryPage';
 import SearchResultsPage from './pages/SearchResultsPage';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
         {/* Subtle Header */}
         <header className="bg-gradient-to-r from-orange-50/80 via-amber-50/80 to-red-50/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-amber-200/30">

@@ -41,17 +41,17 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white overflow-hidden">
+      <div className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
         
         <div className="relative container mx-auto px-4 py-16">
           {/* Breadcrumb Navigation */}
           <nav className="mb-8">
             <Link 
               to="/" 
-              className="inline-flex items-center text-amber-200 hover:text-white font-medium transition-colors duration-300 group"
+              className="inline-flex items-center text-slate-300 hover:text-amber-300 font-medium transition-colors duration-300 group"
             >
               <svg className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -63,7 +63,7 @@ const CategoryPage = () => {
           {/* Category Header */}
           <div className="text-center">
             <div className="mb-6">
-              <span className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold text-amber-100 border border-white/30">
+              <span className="inline-block px-4 py-2 bg-slate-700/40 backdrop-blur-sm rounded-full text-sm font-semibold text-amber-200 border border-slate-600/50">
                 Recipe Category
               </span>
             </div>
@@ -72,9 +72,9 @@ const CategoryPage = () => {
               {name}
             </h1>
             
-            <div className="w-24 h-1 bg-white/80 mx-auto rounded-full mb-6"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-amber-400 to-orange-400 mx-auto rounded-full mb-6"></div>
             
-            <p className="text-xl text-amber-100 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
               Discover delicious {name?.toLowerCase()} recipes from around the world
             </p>
           </div>
